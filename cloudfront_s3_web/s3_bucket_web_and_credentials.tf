@@ -1,22 +1,11 @@
 # Create an S3 bucket with web access and credentials for accessing it
 
-# Using AWS provider
-# Docs: https://www.terraform.io/docs/providers/aws/
-provider "aws" {
-  # Optional. If isn't specified Terraform will ask during apply.
-  # You can set AWS_DEFAULT_REGION environment variable instead
-  # region = "eu-central-1"
-}
-
 # Bucket
 # Docs: https://www.terraform.io/docs/providers/aws/r/s3_bucket.html
 resource "aws_s3_bucket" "main" {
   # Bucket name
   # Note: bucket names must be DNS-compliant
-  # Specifying `bucket_prefix` avoids name collisions
-  bucket_prefix = "tf-"
-  # To specify a full name instead use `bucket`:
-  # bucket = "my-bucket-123"
+  bucket = var.domain_name
 
   # Allow Terraform to destroy the bucket even when it isn't empty.
   # Remove the line if you don't want this to happen
@@ -26,7 +15,7 @@ resource "aws_s3_bucket" "main" {
   acl = "public-read"
   website {
     index_document = "index.html"
-    # error_document = "error.html"
+    error_document = "404.html"
   }
 }
 
@@ -101,29 +90,4 @@ resource "aws_iam_user_policy" "s3_user" {
     ]
 }
 POLICY
-}
-
-# Outputs
-output "bucket_name" {
-  value = aws_s3_bucket.main.id
-}
-
-output "bucket_website_endpoint" {
-  value = "http://${aws_s3_bucket.main.website_endpoint}"
-}
-
-output "bucket_domain" {
-  # Notice that https can be used there unlike with the website
-  # although you don't get to the index.html when accessing the root
-  # For hosting a website with ssl you should add CloudFront to the mix
-  value = "https://${aws_s3_bucket.main.bucket_domain_name}/index.html"
-}
-
-# Keep credentials secret
-output "aws_access_key_id" {
-  value = aws_iam_access_key.s3_user.id
-}
-
-output "aws_secret_access_key" {
-  value = aws_iam_access_key.s3_user.secret
 }
