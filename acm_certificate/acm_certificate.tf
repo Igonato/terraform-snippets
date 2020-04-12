@@ -7,6 +7,7 @@ variable "domain_name" {
 provider "aws" {
   # If you're planning on importing the certificate in CloudFront
   # the region has to be "us-east-1"
+  alias  = "acm"
   region = "us-east-1"
 }
 
@@ -16,6 +17,7 @@ data "aws_route53_zone" "main" {
 }
 
 resource "aws_acm_certificate" "main" {
+  provider = aws.acm
   domain_name               = var.domain_name
   subject_alternative_names = ["www.${var.domain_name}"]
   validation_method         = "DNS"
@@ -42,6 +44,7 @@ resource "aws_route53_record" "cert_validation_alt" {
 }
 
 resource "aws_acm_certificate_validation" "main" {
+  provider = aws.acm
   certificate_arn = aws_acm_certificate.main.arn
 
   validation_record_fqdns = [
